@@ -1,0 +1,14 @@
+{
+  "name": "evaboot-labs-buying-signals-prospect-list",
+  "owner": { "name": "Evaboot", "url": "https://evaboot.com" },
+  "metadata": {
+    "description": "Evaboot's buying-signal prospect list skill for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "buying-signals-prospect-list",
+      "source": "./",
+      "description": "An AI agent runs one Sales Navigator search per buying signal (changed jobs, viewed your profile, follows your company, posted) through Evaboot, scores each person and sorts them into contact today, within 24 hours, or nurture."
+    }
+  ]
+}

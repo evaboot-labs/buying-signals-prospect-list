@@ -1,0 +1,372 @@
+{
+  "name": "Buying-signal prospect list (Evaboot)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "evaboot-signals/:signal",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "c54d2d12-04ec-4cf3-b740-f5b6d2182dca",
+      "name": "New people from Evaboot",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "961cb20b-cd6e-4e60-8116-4ddabcee0694"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4ef18682-94a8-4b3d-ae75-2d1bd472232e",
+              "name": "signals_tab_url",
+              "type": "string",
+              "value": "PASTE_THE_SIGNALS_TAB_URL_WITH_GID"
+            },
+            {
+              "id": "511f4ab9-d0be-4507-b474-d17219b12066",
+              "name": "list_tab_url",
+              "type": "string",
+              "value": "PASTE_THE_LIST_TAB_URL_WITH_GID"
+            },
+            {
+              "id": "60bdb949-0523-4b91-9702-a411451e26d4",
+              "name": "points",
+              "type": "string",
+              "value": "{\"changed_jobs\": 9, \"viewed_profile\": 8, \"fast_growth\": 7, \"fit\": 5, \"follows_company\": 4, \"posted\": 3, \"new_in_role\": 3}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "e8b88f5d-9f8f-43a9-a95b-ec824bcb84d1",
+      "name": "Collect settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// One row per person in the Evaboot run, tagged with the signal from the webhook path.\nconst signal = $json.params.signal;\nconst prospects = $json.body.prospects || [];\nconst num = v => { const n = parseFloat(String(v ?? '').replace(/[,%]/g, '')); return isNaN(n) ? '' : n; };\nconst now = new Date().toISOString();\nreturn prospects.map(p => {\n  const y = num(p['Years in Position']), m = num(p['Months in Position']);\n  return { json: {\n    'Received': now, 'Signal': signal,\n    'Id': p['Linkedin URL Unique ID'] || p['Linkedin URL Public'] || p['Full Name'],\n    'Name': p['Full Name'] || '', 'Title': String(p['Current Job'] || '').trim(), 'Company': p['Company Name'] || '',\n    'Growth 1y %': num(p['Company Employee Growth 1 Year (%)']),\n    'Months in role': (y === '' && m === '') ? '' : (y || 0) * 12 + (m || 0),\n    'Email': p['Email'] || '', 'Email status': p['Email Status'] || 'not found', 'LinkedIn': p['Linkedin URL Public'] || '',\n  } };\n});\n"
+      },
+      "id": "f63ec23b-328d-40bb-819f-b1cb04e25924",
+      "name": "Signal rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Collect settings').first().json.signals_tab_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Collect settings').first().json.signals_tab_url }}"
+        },
+        "options": {
+          "useAppend": true
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "id": "dbc1a9a9-b257-4fca-921f-6f32e193b6d2",
+      "name": "Add to Signals",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        660,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "a759a08c-5b64-491e-9ef7-b1e392628590",
+      "name": "Every weekday at 8",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad781fe9-02ac-4531-aa0b-4e13cae78e96",
+              "name": "signals_tab_url",
+              "type": "string",
+              "value": "PASTE_THE_SIGNALS_TAB_URL_WITH_GID"
+            },
+            {
+              "id": "4848ff79-65d3-4de8-8859-bb5c8484ef51",
+              "name": "list_tab_url",
+              "type": "string",
+              "value": "PASTE_THE_LIST_TAB_URL_WITH_GID"
+            },
+            {
+              "id": "1d1075a5-7f59-4e7a-914f-ee5073f619ce",
+              "name": "points",
+              "type": "string",
+              "value": "{\"changed_jobs\": 9, \"viewed_profile\": 8, \"fast_growth\": 7, \"fit\": 5, \"follows_company\": 4, \"posted\": 3, \"new_in_role\": 3}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c600944d-6ca6-4eb5-ba4a-375f98a5e5c8",
+      "name": "List settings",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        360
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('List settings').first().json.signals_tab_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('List settings').first().json.signals_tab_url }}"
+        },
+        "options": {}
+      },
+      "id": "5f9ce682-490d-4b76-acb8-d3e75da0da86",
+      "name": "Signals",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        440,
+        360
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('List settings').first().json.list_tab_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('List settings').first().json.list_tab_url }}"
+        },
+        "options": {}
+      },
+      "id": "43a95046-ac71-4411-9e24-70ae389cb53d",
+      "name": "Earlier lists",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        660,
+        360
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Same as score.py: people received in the last 7 days and never on a list, merged per person, scored, tiered.\nconst POINTS = JSON.parse($('List settings').first().json.points);\nconst LABELS = { fit: 'fits your buyer search', changed_jobs: 'changed jobs', viewed_profile: 'viewed your profile',\n                 follows_company: 'follows your company', posted: 'posted on LinkedIn', new_in_role: 'under 3 months in role' };\nconst TIERS = [[20, 'today', 'within 1 h'], [10, '24h', 'within 24 h'], [0, 'nurture', 'nurture sequence']];\nconst listed = new Set($('Earlier lists').all().map(r => String(r.json['Id'] || '')).filter(Boolean));\nconst since = Date.now() - 7 * 24 * 3600 * 1000;\nconst people = {};\nfor (const { json: r } of $('Signals').all()) {\n  if (!r['Id'] || listed.has(String(r['Id'])) || new Date(r['Received']).getTime() < since) continue;\n  const p = people[r['Id']] ??= { ...r, signals: new Set(['fit']) };\n  p.signals.add(r['Signal']);\n}\nconst today = new Date().toISOString().slice(0, 10);\nreturn Object.values(people).map(p => {\n  const months = p['Months in role'] === '' ? null : Number(p['Months in role']);\n  const growth = p['Growth 1y %'] === '' ? null : Number(p['Growth 1y %']);\n  if (months !== null && months < 3) p.signals.add('new_in_role');\n  if (growth !== null && growth >= 30) p.signals.add('fast_growth');\n  const signals = [...p.signals].sort((a, b) => (POINTS[b] || 0) - (POINTS[a] || 0));\n  const score = signals.reduce((s, x) => s + (POINTS[x] || 0), 0);\n  const [, tier, respond] = TIERS.find(t => score >= t[0]);\n  const safe = String(p['Email status']).toLowerCase() === 'safe';\n  return { json: {\n    'Date': today, 'Tier': tier, 'Respond': respond, 'Score': score, 'Id': p.Id, 'Name': p.Name, 'Title': p.Title,\n    'Company': p.Company,\n    'Signals': signals.map(s => s === 'fast_growth' ? `company +${Math.round(growth)}% in a year` : (LABELS[s] || s)).join(', '),\n    'Email': safe ? p.Email : '', 'Reach by': safe ? 'email' : 'LinkedIn', 'LinkedIn': p.LinkedIn,\n  } };\n}).sort((a, b) => b.json.Score - a.json.Score || a.json.Name.localeCompare(b.json.Name));\n"
+      },
+      "id": "a1e719e5-c854-4f07-a7a0-edd455ff9f9a",
+      "name": "Merge, score and tier",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        360
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('List settings').first().json.list_tab_url }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('List settings').first().json.list_tab_url }}"
+        },
+        "options": {},
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "id": "b1ab64e0-d969-4478-ac17-0c231da9327a",
+      "name": "Add to List",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1100,
+        360
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "New people from Evaboot": {
+      "main": [
+        [
+          {
+            "node": "Collect settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect settings": {
+      "main": [
+        [
+          {
+            "node": "Signal rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signal rows": {
+      "main": [
+        [
+          {
+            "node": "Add to Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every weekday at 8": {
+      "main": [
+        [
+          {
+            "node": "List settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List settings": {
+      "main": [
+        [
+          {
+            "node": "Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Signals": {
+      "main": [
+        [
+          {
+            "node": "Earlier lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Earlier lists": {
+      "main": [
+        [
+          {
+            "node": "Merge, score and tier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge, score and tier": {
+      "main": [
+        [
+          {
+            "node": "Add to List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
